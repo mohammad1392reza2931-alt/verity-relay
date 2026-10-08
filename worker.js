@@ -55,7 +55,12 @@ export default {
     // On Workers the socket is already open after accept(), so start right away.
     start(server);
 
+    console.log("ws accepted");
+    server.addEventListener("close", (e) => console.log("ws close", e.code, e.reason));
+    server.addEventListener("error", (e) => console.log("ws error", String(e.message || e)));
+
     server.addEventListener("message", (event) => {
+      console.log("ws msg", String(event.data).slice(0, 200));
       handleMessage(server, event.data, env, state).catch((err) => {
         console.log("handler error", String(err));
       });
