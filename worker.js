@@ -40,7 +40,9 @@ Never give more than 64 of one item.`;
 
 export default {
   async fetch(request, env) {
-    if (request.headers.get("Upgrade") !== "websocket") {
+    const upgrade = (request.headers.get("Upgrade") || "").toLowerCase();
+    if (upgrade !== "websocket") {
+      console.log("non-websocket request, Upgrade header =", request.headers.get("Upgrade"));
       return new Response("Verity relay is running.", { status: 200 });
     }
 
