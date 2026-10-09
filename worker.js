@@ -40,6 +40,23 @@ Never give more than 64 of one item.`;
 
 export default {
   async fetch(request, env) {
+    // Self-test page: open https://YOUR-WORKER.workers.dev/test in a normal browser
+    if (new URL(request.url).pathname === "/test") {
+      const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<body style="font-family:monospace;padding:12px"><h3>Verity WebSocket test</h3><pre id="o">connecting...</pre>
+<script>
+const o=document.getElementById("o");const log=(t)=>{o.textContent+="\\n"+t};
+try{
+const ws=new WebSocket("wss://"+location.host+"/");
+ws.onopen=()=>log("OPEN: connected OK");
+ws.onmessage=(e)=>log("MSG: "+String(e.data).slice(0,200));
+ws.onerror=()=>log("ERROR");
+ws.onclose=(e)=>log("CLOSE code="+e.code);
+}catch(e){log("EXCEPTION "+e)}
+</script></body>`;
+      return new Response(html, { headers: { "content-type": "text/html; charset=utf-8" } });
+    }
+
     const upgrade = (request.headers.get("Upgrade") || "").toLowerCase();
     if (upgrade !== "websocket") {
       console.log("non-websocket request, Upgrade header =", request.headers.get("Upgrade"));
