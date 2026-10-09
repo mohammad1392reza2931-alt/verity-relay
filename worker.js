@@ -39,7 +39,7 @@ Item names are Minecraft ids without the "minecraft:" prefix, lowercase with und
 Never give more than 64 of one item.`;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     // Self-test page: open https://YOUR-WORKER.workers.dev/test in a normal browser
     if (new URL(request.url).pathname === "/test") {
       const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -70,9 +70,14 @@ ws.onclose=(e)=>log("CLOSE code="+e.code);
 
     const state = { history: new Map(), lastCall: new Map() };
 
-    server.addEventListener("open", () => start(server));
-    // On Workers the socket is already open after accept(), so start right away.
-    start(server);
+    // Send the first messages a moment AFTER the handshake finished.
+    // (Some clients, like Minecraft's, close the socket if a frame arrives together with the 101 response.)
+    ctx.waitUntil(new Promise((resolve) => {
+      setTimeout(() => {
+        try { start(server); console.log("ws start sent"); } catch (e) { console.log("start error", String(e)); }
+        resolve();
+      }, 1000);
+    }));
 
     console.log("ws accepted");
     server.addEventListener("close", (e) => console.log("ws close", e.code, e.reason));
